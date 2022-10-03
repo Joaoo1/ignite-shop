@@ -1,19 +1,35 @@
+import { useState } from 'react';
 import { AppProps } from 'next/app';
-import Image from 'next/future/image';
 import { globalStyles } from '../styles/global';
-import logoImg from '../assets/logo.svg';
-import { Container, Header } from '../styles/pages/app';
+
+import { CartContextProvider } from '../contexts/CartContext';
+import { Cart } from '../components/Cart';
+import { Container } from '../styles/pages/app';
+import { Header } from '../components/Header';
 
 globalStyles();
 
 function MyApp({ Component, pageProps }: AppProps) {
+  const [isCartOpen, setCartOpen] = useState(false);
+
+  function handleCartButton() {
+    setCartOpen((state) => !state);
+  }
+
+  function handleCloseCartButton() {
+    setCartOpen(false);
+  }
+
   return (
-    <Container>
-      <Header>
-        <Image src={logoImg} alt='' />
-      </Header>
-      <Component {...pageProps} />
-    </Container>
+    <CartContextProvider>
+      <Container>
+        <Header onCartButtonClick={handleCartButton} />
+
+        <Component {...pageProps} />
+
+        {isCartOpen && <Cart onClose={handleCloseCartButton} />}
+      </Container>
+    </CartContextProvider>
   );
 }
 

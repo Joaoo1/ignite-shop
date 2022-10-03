@@ -16,7 +16,7 @@ export const { config, styled, css, globalCss, keyframes, getCssText, theme, cre
       },
 
       fontSizes: {
-        md: '1.25rem',
+        md: '1rem',
         lg: '1.25rem',
         xl: '1.5rem',
         xxl: '2rem',

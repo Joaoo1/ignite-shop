@@ -1,42 +1,29 @@
 import { GetStaticPaths, GetStaticProps } from 'next';
 import Image from 'next/future/image';
 import Head from 'next/head';
-import { useState } from 'react';
 import Stripe from 'stripe';
-import axios from 'axios';
 import { stripe } from '../../lib/stripe';
 import { ImageContainer, ProductContainer, ProductDetails } from '../../styles/pages/product';
+import { formatMoneyToBRL } from '../../utils/intl';
+import { useCart } from '../../hooks/useCart';
 
 interface ProductProps {
   product: {
     id: string;
     name: string;
     imageUrl: string;
-    price: string;
+    price: number;
+    formattedPrice: string;
     description: string;
     defaultPriceId: string;
   };
 }
 
 export default function Product({ product }: ProductProps) {
-  const [isCreatingCheckoutSession, setIsCreatingCheckoutSession] = useState(false);
+  const { addProductToCart } = useCart();
 
   async function handleBuyButton() {
-    try {
-      setIsCreatingCheckoutSession(true);
-
-      const response = await axios.post('/api/checkout', {
-        priceId: product.defaultPriceId,
-      });
-
-      const { checkoutUrl } = response.data;
-
-      window.location.href = checkoutUrl;
-    } catch (err) {
-      setIsCreatingCheckoutSession(false);
-
-      alert('Falha ao redirecionar ao checkout!');
-    }
+    addProductToCart(product);
   }
 
   return (
@@ -51,13 +38,11 @@ export default function Product({ product }: ProductProps) {
 
         <ProductDetails>
           <h1>{product.name}</h1>
-          <span>{product.price}</span>
+          <span>{product.formattedPrice}</span>
 
           <p>{product.description}</p>
 
-          <button disabled={isCreatingCheckoutSession} onClick={handleBuyButton}>
-            Comprar agora
-          </button>
+          <button onClick={handleBuyButton}>Comprar agora</button>
         </ProductDetails>
       </ProductContainer>
     </>
@@ -86,10 +71,8 @@ export const getStaticProps: GetStaticProps<any, { id: string }> = async ({ para
         id: product.id,
         name: product.name,
         imageUrl: product.images[0],
-        price: new Intl.NumberFormat('pt-BR', {
-          style: 'currency',
-          currency: 'BRL',
-        }).format(price.unit_amount / 100),
+        price: price.unit_amount / 100,
+        formattedPrice: formatMoneyToBRL(price.unit_amount / 100),
         description: product.description,
         defaultPriceId: price.id,
       },
